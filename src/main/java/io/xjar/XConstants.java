@@ -19,5 +19,7 @@ public interface XConstants {
     String DEFAULT_ALGORITHM = "AES/CBC/PKCS5Padding";
     int DEFAULT_KEYSIZE = 128;
     int DEFAULT_IVSIZE = 128;
+    String DEFAULT_PASSWORD = "h9hBptl477TDqrfY";
+    String DEFAULT_KKKKKKK = "ab1f811e770bff5f";
 
 }

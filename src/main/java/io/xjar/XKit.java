@@ -3,6 +3,7 @@ package io.xjar;
 import io.xjar.filter.XAllEntryFilter;
 import io.xjar.filter.XAnyEntryFilter;
 import io.xjar.filter.XNotEntryFilter;
+import io.xjar.key.CustomField;
 import io.xjar.key.XKey;
 import io.xjar.key.XSecureRandom;
 import io.xjar.key.XSymmetricSecureKey;
@@ -13,10 +14,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * XJar 工具类，包含I/O，密钥，过滤器的工具方法。
@@ -227,6 +225,12 @@ public abstract class XKit implements XConstants {
     public static XKey key(String password) throws NoSuchAlgorithmException {
         return key(DEFAULT_ALGORITHM, DEFAULT_KEYSIZE, DEFAULT_IVSIZE, password);
     }
+    public static XKey key(String algorithm, int keysize, int ivsize, String password) throws NoSuchAlgorithmException {
+        return key(algorithm, keysize, ivsize, password,new CustomField(new Date(),null,false,false,null));
+    }
+    public static XKey key(String password,CustomField customField) throws NoSuchAlgorithmException {
+        return key(DEFAULT_ALGORITHM, DEFAULT_KEYSIZE, DEFAULT_IVSIZE, password,customField);
+    }
 
     /**
      * 根据密码生成密钥
@@ -238,7 +242,7 @@ public abstract class XKit implements XConstants {
      * @return 密钥
      * @throws NoSuchAlgorithmException 没有该密钥算法
      */
-    public static XKey key(String algorithm, int keysize, int ivsize, String password) throws NoSuchAlgorithmException {
+    public static XKey key(String algorithm, int keysize, int ivsize, String password, CustomField customField) throws NoSuchAlgorithmException {
         MessageDigest sha512 = MessageDigest.getInstance("SHA-512");
         byte[] seed = sha512.digest(password.getBytes(StandardCharsets.UTF_8));
         KeyGenerator generator = KeyGenerator.getInstance(algorithm.split("[/]")[0]);
@@ -247,7 +251,7 @@ public abstract class XKit implements XConstants {
         SecretKey key = generator.generateKey();
         generator.init(ivsize, random);
         SecretKey iv = generator.generateKey();
-        return new XSymmetricSecureKey(algorithm, keysize, ivsize, password, key.getEncoded(), iv.getEncoded());
+        return new XSymmetricSecureKey(algorithm, keysize, ivsize, password, key.getEncoded(), iv.getEncoded(),customField);
     }
 
     /**

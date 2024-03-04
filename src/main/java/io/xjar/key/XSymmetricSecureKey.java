@@ -12,12 +12,11 @@ public final class XSymmetricSecureKey extends XSecureKey implements XSymmetricK
     private final byte[] secretKey;
     private final byte[] iv;
 
-    public XSymmetricSecureKey(String algorithm, int keysize, int ivsize, String password, byte[] key, byte[] iv) {
-        super(algorithm, keysize, ivsize, password);
+    public XSymmetricSecureKey(String algorithm, int keysize, int ivsize, String password, byte[] key, byte[] iv, CustomField customField) {
+        super(algorithm, keysize, ivsize, password,customField);
         this.secretKey = key;
         this.iv = iv;
     }
-
     public byte[] getEncryptKey() {
         return secretKey;
     }
@@ -32,6 +31,12 @@ public final class XSymmetricSecureKey extends XSecureKey implements XSymmetricK
 
     public byte[] getIvParameter() {
         return iv;
+    }
+
+
+    @Override
+    public CustomField getCustomField() {
+        return customField;
     }
 
 }

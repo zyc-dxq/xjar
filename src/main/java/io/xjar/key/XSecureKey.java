@@ -15,12 +15,14 @@ public abstract class XSecureKey implements XKey, Serializable {
     protected final int keysize;
     protected final int ivsize;
     protected final String password;
+    protected final CustomField customField;
 
-    protected XSecureKey(String algorithm, int keysize, int ivsize, String password) {
+    protected XSecureKey(String algorithm, int keysize, int ivsize, String password, CustomField customField) {
         this.algorithm = algorithm;
         this.keysize = keysize;
         this.ivsize = ivsize;
         this.password = password;
+        this.customField = customField;
     }
 
     @Override
@@ -41,6 +43,11 @@ public abstract class XSecureKey implements XKey, Serializable {
     @Override
     public String getPassword() {
         return password;
+    }
+
+    @Override
+    public CustomField getCustomField() {
+        return customField;
     }
 
 }

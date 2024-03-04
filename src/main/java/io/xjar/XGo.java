@@ -5,6 +5,7 @@ import io.xjar.key.XKey;
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -18,15 +19,26 @@ import java.util.Map;
  */
 public class XGo {
     private static final String CLRF = System.getProperty("line.separator");
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     public static void make(File xJar, XKey xKey) throws IOException {
-        byte[] md5 = XKit.md5(xJar);
-        byte[] sha1 = XKit.sha1(xJar);
-
+        byte[] md5 = null;
+        byte[] sha1 = null;
+        if(xKey.getCustomField().getMd5Enabled()){
+            md5 = XKit.md5(xJar);
+            sha1 = XKit.sha1(xJar);
+        }else {
+            md5 = "null".getBytes(StandardCharsets.UTF_8);
+            sha1 = "null".getBytes(StandardCharsets.UTF_8);
+        }
         byte[] algorithm = xKey.getAlgorithm().getBytes(StandardCharsets.UTF_8);
         byte[] keysize = String.valueOf(xKey.getKeysize()).getBytes(StandardCharsets.UTF_8);
         byte[] ivsize = String.valueOf(xKey.getIvsize()).getBytes(StandardCharsets.UTF_8);
         byte[] password = xKey.getPassword().getBytes(StandardCharsets.UTF_8);
+        byte[] beginTime = (xKey.getCustomField().getBeginTime() != null ? sdf.format(xKey.getCustomField().getBeginTime()) : "null").getBytes(StandardCharsets.UTF_8);
+        byte[] endTime = (xKey.getCustomField().getEndTime() !=null ? sdf.format(xKey.getCustomField().getEndTime()) : "null").getBytes(StandardCharsets.UTF_8);
+        byte[] agentEnabled = (xKey.getCustomField().getAgentEnabled() !=null ? xKey.getCustomField().getAgentEnabled().toString() : "null").getBytes(StandardCharsets.UTF_8);
+        byte[] mac = (xKey.getCustomField().getMac() !=null ? xKey.getCustomField().getMac(): "null").getBytes(StandardCharsets.UTF_8);
 
         Map<String, String> variables = new HashMap<>();
         variables.put("xJar.md5", convert(md5));
@@ -35,8 +47,13 @@ public class XGo {
         variables.put("xKey.keysize", convert(keysize));
         variables.put("xKey.ivsize", convert(ivsize));
         variables.put("xKey.password", convert(password));
+        variables.put("xTime.beginTime", convert(beginTime));
+        variables.put("xTime.endTime", convert(endTime));
+        variables.put("xAgent.enabled", convert(agentEnabled));
+        variables.put("xAgent.mac", convert(mac));
 
-        List<String> templates = Arrays.asList("xjar.go", "xjar_agentable.go");
+        List<String> templates = Arrays.asList("xjar.go", "xjar_agentable.go","config.ini");
+        templates = Arrays.asList("config.ini");
         for (String template : templates) {
             URL url = XGo.class.getClassLoader().getResource("xjar/" + template);
             if (url == null) {
@@ -53,12 +70,23 @@ public class XGo {
                     BufferedWriter bw = new BufferedWriter(writer)
             ) {
                 String line;
-                while ((line = br.readLine()) != null) {
-                    for (Map.Entry<String, String> variable : variables.entrySet()) {
-                        line = line.replace("#{" + variable.getKey() + "}", variable.getValue());
+                StringBuilder textStr = new StringBuilder();
+                if ("config.ini".equals(template)) {
+                    while ((line = br.readLine()) != null) {
+                        for (Map.Entry<String, String> variable : variables.entrySet()) {
+                            line = line.replace("#{" + variable.getKey() + "}", variable.getValue());
+                        }
+                        textStr.append(line).append(CLRF);
                     }
-                    bw.write(line);
-                    bw.write(CLRF);
+                    bw.write(AESUtil.encrypt(textStr.toString(), XConstants.DEFAULT_KKKKKKK));
+                } else {
+                    while ((line = br.readLine()) != null) {
+                        for (Map.Entry<String, String> variable : variables.entrySet()) {
+                            line = line.replace("#{" + variable.getKey() + "}", variable.getValue());
+                        }
+                        bw.write(line);
+                        bw.write(CLRF);
+                    }
                 }
                 bw.flush();
                 writer.flush();

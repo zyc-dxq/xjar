@@ -3,6 +3,7 @@ package io.xjar;
 import io.xjar.filter.XAllEntryFilter;
 import io.xjar.filter.XAnyEntryFilter;
 import io.xjar.filter.XMixEntryFilter;
+import io.xjar.key.CustomField;
 import io.xjar.key.XKey;
 import org.apache.commons.compress.archivers.jar.JarArchiveEntry;
 
@@ -72,6 +73,20 @@ public class XEncryption {
     public XEncryption use(String algorithm, int keysize, int ivsize, String password) {
         try {
             this.key = XKit.key(algorithm, keysize, ivsize, password);
+            return this;
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    public XEncryption useWithTime(CustomField customField) {
+        useWithTime(XConstants.DEFAULT_PASSWORD, customField);
+        return this;
+    }
+
+    public XEncryption useWithTime(String password, CustomField customField) {
+        try {
+            this.key = XKit.key(password, customField);
             return this;
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException(e);

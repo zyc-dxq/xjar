@@ -43,4 +43,8 @@ public interface XKey {
      */
     byte[] getIvParameter();
 
+    /**
+     * @return 自定义参数
+     */
+    CustomField getCustomField();
 }

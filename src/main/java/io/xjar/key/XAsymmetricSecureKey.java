@@ -12,8 +12,8 @@ public final class XAsymmetricSecureKey extends XSecureKey implements XAsymmetri
     private final byte[] publicKey;
     private final byte[] privateKey;
 
-    public XAsymmetricSecureKey(String algorithm, int keysize, int ivsize, String password, byte[] publicKey, byte[] privateKey) {
-        super(algorithm, keysize, ivsize, password);
+    public XAsymmetricSecureKey(String algorithm, int keysize, int ivsize, String password, byte[] publicKey, byte[] privateKey, CustomField customField) {
+        super(algorithm, keysize, ivsize, password,customField);
         this.publicKey = publicKey;
         this.privateKey = privateKey;
     }
@@ -36,6 +36,11 @@ public final class XAsymmetricSecureKey extends XSecureKey implements XAsymmetri
 
     public byte[] getIvParameter() {
         return null;
+    }
+
+    @Override
+    public CustomField getCustomField() {
+        return customField;
     }
 
 }
