@@ -137,6 +137,10 @@ public class XEncryption {
         return this;
     }
 
+    public void to() throws Exception {
+        to(this.jar.getAbsolutePath());
+    }
+
     /**
      * 指定密文包路径, 并执行加密.
      *
@@ -144,6 +148,9 @@ public class XEncryption {
      * @throws Exception 加密异常
      */
     public void to(String xJar) throws Exception {
+        if(this.jar.getName().equals(xJar)){
+            xJar = xJar.replace(".jar",".xjar");
+        }
         to(new File(xJar));
     }
 
