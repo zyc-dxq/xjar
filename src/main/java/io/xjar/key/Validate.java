@@ -70,7 +70,7 @@ public class Validate {
             if (!customField.getAgentEnabled()) {
                 // 验证客户端
                 String javaagent = System.getProperty("javaagent");
-                if (!javaagent.isEmpty()) {
+                if (javaagent!= null && !javaagent.isEmpty()) {
                     System.out.println("不支持agent方式启动，启动失败");
                     System.exit(1);
                 }
