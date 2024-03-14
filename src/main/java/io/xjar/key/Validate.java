@@ -23,7 +23,7 @@ public class Validate {
         try {
             byte[] text = getConfigContent();
             return decrypt(new String(text));
-        } catch (IOException e) {
+        } catch (Exception e) {
             System.out.println("ini文件不存在,无法启动");
             System.exit(1);
         }
