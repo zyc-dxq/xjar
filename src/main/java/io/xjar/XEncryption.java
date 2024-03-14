@@ -148,7 +148,7 @@ public class XEncryption {
      * @throws Exception 加密异常
      */
     public void to(String xJar) throws Exception {
-        if(this.jar.getName().equals(xJar)){
+        if(this.jar.getAbsolutePath().equals(xJar)){
             xJar = xJar.replace(".jar",".xjar");
         }
         to(new File(xJar));

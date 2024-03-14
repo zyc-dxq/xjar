@@ -45,9 +45,7 @@ public class XZipEncryptor extends XEntryEncryptor<ZipArchiveEntry> implements X
         } finally {
             if (src.getAbsolutePath().equals(dest.getAbsolutePath().replace(".xjar", ".jar"))) {
                 boolean delete = src.delete();
-                System.out.println("源码删除成功:" + delete);
                 boolean rename = dest.renameTo(new File(dest.getAbsolutePath().replace(".xjar", ".jar")));
-                System.out.println("加密命名成功:" + rename);
             }
         }
     }

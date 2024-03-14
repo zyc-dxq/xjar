@@ -12,15 +12,36 @@ import java.net.SocketException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class Validate {
 
     // 设置是否启动器参数
-    public String validate() throws IOException {
-        byte[] text = Files.readAllBytes(new File(System.getProperty("user.dir") + File.separator + "config.ini").toPath());
-        return decrypt(new String(text));
+    public String validate() {
+        try {
+            byte[] text = getConfigContent();
+            return decrypt(new String(text));
+        } catch (IOException e) {
+            System.out.println("ini文件不存在,无法启动");
+            System.exit(1);
+        }
+        return null;
+    }
+
+    public byte[] getConfigContent() throws IOException {
+        File projectPath = new File(System.getProperty("user.dir") + File.separator + "config.ini");
+        if (projectPath.exists()) {
+            Path path = projectPath.toPath();
+            return Files.readAllBytes(path);
+        }
+        projectPath = new File(System.getProperty("user.dir") + File.separator + "config/config.ini");
+        if (projectPath.exists()) {
+            Path path = projectPath.toPath();
+            return Files.readAllBytes(path);
+        }
+        return null;
     }
 
     public String decrypt(String str) {
@@ -70,7 +91,7 @@ public class Validate {
             if (!customField.getAgentEnabled()) {
                 // 验证客户端
                 String javaagent = System.getProperty("javaagent");
-                if (javaagent!= null && !javaagent.isEmpty()) {
+                if (javaagent != null && !javaagent.isEmpty()) {
                     System.out.println("不支持agent方式启动，启动失败");
                     System.exit(1);
                 }
@@ -99,6 +120,8 @@ public class Validate {
             sb.append(new String(bytes6)).append("\n");
             return sb.toString();
         } catch (Exception e) {
+            System.out.println("ini文件读取出错,启动失败");
+            System.exit(1);
             return null;
         }
     }
