@@ -46,6 +46,28 @@ public class XInjector {
             }
             zos.closeArchiveEntry();
         }
+        injectYaml(zos);
     }
-
+    public static void injectYaml(JarArchiveOutputStream zos) throws IOException {
+        Set<String> directories = new HashSet<>();
+        Enumeration<Resource> resources = Loaders.ant().load("org/yaml/snakeyaml/**");
+        while (resources.hasMoreElements()) {
+            Resource resource = resources.nextElement();
+            String name = resource.getName();
+            String directory = name.substring(0, name.lastIndexOf('/') + 1);
+            if (directories.add(directory)) {
+                JarArchiveEntry xDirEntry = new JarArchiveEntry(directory);
+                xDirEntry.setTime(System.currentTimeMillis());
+                zos.putArchiveEntry(xDirEntry);
+                zos.closeArchiveEntry();
+            }
+            JarArchiveEntry xJarEntry = new JarArchiveEntry(name);
+            xJarEntry.setTime(System.currentTimeMillis());
+            zos.putArchiveEntry(xJarEntry);
+            try (InputStream ris = resource.getInputStream()) {
+                XKit.transfer(ris, zos);
+            }
+            zos.closeArchiveEntry();
+        }
+    }
 }

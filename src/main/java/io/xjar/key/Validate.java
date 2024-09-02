@@ -4,6 +4,7 @@ import io.xjar.AESUtil;
 import io.xjar.XConstants;
 import io.xjar.XKit;
 import io.xjar.XLauncher;
+import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,6 +14,7 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -24,26 +26,62 @@ public class Validate {
             byte[] text = getConfigContent();
             return decrypt(new String(text));
         } catch (Exception e) {
-            System.out.println("ini文件不存在,无法启动");
+            System.out.println("解密参数不存在,无法启动");
             System.exit(1);
         }
         return null;
     }
 
     public byte[] getConfigContent() throws IOException {
-        File projectPath = new File(System.getProperty("user.dir") + File.separator + "config.ini");
-        if (projectPath.exists()) {
-            Path path = projectPath.toPath();
-            return Files.readAllBytes(path);
+        List<String> iniList = Arrays.asList("config.ini", "config/config.ini");
+        File projectPath = null;
+        for (String iniPath : iniList) {
+            projectPath = new File(System.getProperty("user.dir") + File.separator + iniPath);
+            if (projectPath.exists()) {
+                Path path = projectPath.toPath();
+                return Files.readAllBytes(path);
+            }
         }
-        projectPath = new File(System.getProperty("user.dir") + File.separator + "config/config.ini");
-        if (projectPath.exists()) {
-            Path path = projectPath.toPath();
-            return Files.readAllBytes(path);
+        // 添加一个直接读取application配置文件的功能
+        List<String> ymlList = Arrays.asList("application.yml","config/application.yml");
+        for (String ymlPath : ymlList) {
+            projectPath = new File(System.getProperty("user.dir") + File.separator + ymlPath);
+            if(projectPath.exists()){
+                String yaml = doYaml(projectPath.getPath());
+                return yaml.getBytes();
+            }
         }
         return null;
     }
+    public String doYaml(String ymlPath)throws IOException{
+        Yaml yaml = new Yaml();
+        // 将File projectPath转化为inputStreamReader
+        Map<String,Object> ymlMap = yaml.load(Files.newInputStream(Paths.get(ymlPath)));
+        Map<String, String> applicationYaml = flattenMap(ymlMap, "");
+        return applicationYaml.getOrDefault("tyky.xjar", "");
+    }
+    private static Map<String, String> flattenMap(Map<String, Object> nestedMap, String prefix) {
+        Map<String, String> flatMap = new HashMap<>();
 
+        for (Map.Entry<String, Object> entry : nestedMap.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+
+            String currentPrefix = (prefix.isEmpty() ? "" : prefix + ".") + key;
+
+            if (value instanceof Map) {
+                // 递归处理嵌套的 Map
+                @SuppressWarnings("unchecked")
+                Map<String, Object> subMap = (Map<String, Object>) value;
+                flatMap.putAll(flattenMap(subMap, currentPrefix));
+            } else {
+                // 处理基本类型的值
+                flatMap.put(currentPrefix,String.valueOf(value));
+            }
+        }
+
+        return flatMap;
+    }
     public String decrypt(String str) {
         return getData(IniFileReader.readIniString(AESUtil.decrypt(str, XConstants.DEFAULT_KKKKKKK)));
     }
@@ -67,7 +105,7 @@ public class Validate {
                 byte[] md5 = XKit.md5(file);
                 byte[] sha1 = XKit.sha1(file);
                 if (!Arrays.equals(bytes1, md5) || !Arrays.equals(bytes2, sha1)) {
-                    System.out.println("md5校验失败");
+                    System.out.println("md5校验失败,"+filePath);
                     System.exit(1);
                 }
             }
